@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini JARVIS</title>
+    <link rel="stylesheet" href="main.css">
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/128/9626/9626678.png">
+</head>
+
+<body>
+    <div
+        class="container m-auto w-[40vw] flex flex-col gap-4 justify-center items-center p-4 max-w-[900px] min-w-[500px] h-[500px]">
+        <h1 id="heading" class="text-5xl text-white text-center">🎙️ Mini JARVIS</h1>
+
+        <p id="output"></p>
+        <!-- <div class="animate-spin">
+            <img src="https://cdn-icons-png.flaticon.com/128/4674/4674415.png" alt="not found"
+                class="invert filter grayscale h-4">
+        </div> -->
+        <button id="mic">
+            <img src="https://cdn-icons-png.flaticon.com/128/709/709682.png" alt="Mic">
+        </button>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const micButton = document.getElementById('mic');
+            let firstClick = true;
+
+            // Greeting function
+            const greetAtStart = () => {
+                const aiGreetings = [
+                    "Hello! I’m your friendly AI assistant. Try saying Google or YouTube followed by your search.",
+                    "Hi there! Want to search? Just say Google or YouTube followed by your query.",
+                    "Greetings! Ask me to open Google or YouTube for you.",
+                    "Want To Know Weather of your location, Just Say Weather, You will know weather and for other place, just say weather followed by place name",
+                    "Want To Hear a Joke, Just Say Joke!!"
+                ];
+                if ('speechSynthesis' in window) {
+                    const randomGreet = aiGreetings[Math.floor(Math.random() * aiGreetings.length)];
+
+                    // 👇 ADD THIS LINE
+                    document.getElementById('output').textContent = randomGreet;
+
+                    const utterance = new SpeechSynthesisUtterance(randomGreet);
+                    utterance.lang = 'en-IN';
+                    utterance.rate = 1;
+                    window.speechSynthesis.speak(utterance);
+                    console.log(randomGreet);
+                }
+            };
+
+            // Fetch weather function
+            const fetchWeather = async (query) => {
+                const apikey = '280a0a168aeb4a3496f30316251307';
+                const apiUrl = `https://api.weatherapi.com/v1/current.json?key=${apikey}&q=${encodeURIComponent(query)}`;
+
+                try {
+                    const response = await fetch(apiUrl);
+                    const data = await response.json();
+
+                    if (data.error) {
+                        alert("City Not Found or Weather API Error");
+                        return;
+                    }
+
+                    const location = data.location.name;
+                    const temp = data.current.temp_c;
+                    const condition = data.current.condition.text;
+
+                    document.getElementById('output').textContent =
+                        `Weather in ${location}: ${condition}, ${temp}°C`;
+
+                    const utterance = new SpeechSynthesisUtterance(
+                        `The weather in ${location} is ${condition} with a temperature of ${temp} degrees Celsius.`
+                    );
+                    utterance.lang = 'en-IN';
+                    speechSynthesis.speak(utterance);
+
+                } catch (err) {
+                    console.error("Error fetching weather:", err);
+                }
+            };
+
+            // Voice recognition function
+            const startListening = () => {
+                const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+                recognition.lang = 'en-US';
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+
+                recognition.start();
+                document.getElementById('output').textContent = `(Listening...)`;
+
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript.toLowerCase();
+                    document.getElementById('output').textContent = `You said: "${transcript}"`;
+
+                    // Google search
+                    if (transcript.includes("google")) {
+                        const query = transcript.replace("google", "").trim();
+                        const url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+                        window.open(url, "_blank");
+                    }
+                    // YouTube search
+                    else if (transcript.includes("youtube")) {
+                        const query = transcript.replace("youtube", "").trim();
+                        const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+                        window.open(url, "_blank");
+                    }
+
+                    // Weather command
+                    if (transcript.includes("weather")) {
+                        let locationQuery = transcript.replace("weather", "").trim();
+
+                        if (locationQuery) {
+                            // If user says "weather in Paris" or "weather London"
+                            locationQuery = locationQuery.replace(/^in\s+/i, ""); // remove "in" if present
+                            fetchWeather(locationQuery);
+                        } else {
+                            // No location provided → use geolocation
+                            if ("geolocation" in navigator) {
+                                navigator.geolocation.getCurrentPosition(position => {
+                                    const lat = position.coords.latitude;
+                                    const lon = position.coords.longitude;
+                                    fetchWeather(`${lat},${lon}`);
+                                }, error => {
+                                    console.error("Geolocation error:", error);
+                                });
+                            } else {
+                                alert("Geolocation not supported in your browser");
+                            }
+                        }
+                    }
+
+                    //Joke Command
+
+                    if (transcript.includes('joke') || transcript.includes('jokes')) {
+                        async function getJoke() {
+                            const apiUrl = `https://official-joke-api.appspot.com/random_joke`;
+
+                            try {
+                                const response = await fetch(apiUrl);
+                                const data = await response.json();
+
+                                if (data && data.setup && data.punchline) {
+                                    const joke = `${data.setup} ... ${data.punchline}`;
+                                    document.getElementById('output').textContent = joke;
+
+                                    const utterance = new SpeechSynthesisUtterance(joke);
+                                    utterance.lang = 'en-IN';
+
+                                    // Optional: Play laugh sound
+                                    utterance.onend = () => {
+                                        const laughSound = new Audio('/laugh_sound.mp3');
+                                        laughSound.play().catch(err => console.error("Audio play failed:", err));
+                                    };
+                                    speechSynthesis.speak(utterance);
+                                } else {
+                                    document.getElementById('output').textContent = "No jokes found!";
+                                }
+                            } catch (err) {
+                                console.error("Error fetching joke:", err);
+                            }
+                        }
+
+                        getJoke();
+                    }
+
+
+
+                };
+
+                recognition.onerror = (event) => {
+                    document.getElementById('output').textContent = `Error: ${event.error}`;
+                };
+            };
+
+            // Mic button click handler
+            micButton.addEventListener("click", () => {
+                if (firstClick) {
+                    greetAtStart();
+                    firstClick = false;
+                    return;
+                }
+
+                if (micButton.innerHTML.includes("709682.png")) {
+                    micButton.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/59/59120.png" alt="Mic">`;
+                    startListening();
+                } else {
+                    micButton.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/128/709/709682.png" alt="Mic">`;
+                    document.getElementById('output').innerHTML = `(Processing)`;
+                }
+            });
+        });
+    </script>
+
+
+</body>
+
+</html>

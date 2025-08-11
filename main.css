@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    font-family: Arial, sans-serif;
+    background: #0f172a;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+#mic {
+    background: red;
+    border-radius: 50%;
+    width: 200px;
+    height: 200px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 0 20px red;
+    transition: 0.3s;
+}
+
+#mic img {
+    height: 150px;
+    text-align: center;
+    margin: auto;
+}
+
+#mic:hover {
+    box-shadow: 0 0 30px yellow;
+}
+
+.container {
+    margin: auto;
+    width: 40vw;
+    border-radius: 10px;
+    box-shadow: 2px black;
+    margin-top: 10%;
+}
