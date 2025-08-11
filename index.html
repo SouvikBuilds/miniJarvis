@@ -28,6 +28,9 @@
         document.addEventListener("DOMContentLoaded", function () {
             const micButton = document.getElementById('mic');
             let firstClick = true;
+            const laughSound = new Audio('/laugh_sound.mp3');
+            laughSound.preload = 'auto';
+            laughSound.volume = 1
 
             // Greeting function
             const greetAtStart = () => {
@@ -155,7 +158,7 @@
 
                                     // Optional: Play laugh sound
                                     utterance.onend = () => {
-                                        const laughSound = new Audio('./laugh_sound.mp3');
+                                        laughSound.currentTime = 0
                                         laughSound.play().catch(err => console.error("Audio play failed:", err));
                                     };
                                     speechSynthesis.speak(utterance);
