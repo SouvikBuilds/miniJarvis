@@ -36,7 +36,8 @@
                     "Hi there! Want to search? Just say Google or YouTube followed by your query.",
                     "Greetings! Ask me to open Google or YouTube for you.",
                     "Want To Know Weather of your location, Just Say Weather, You will know weather and for other place, just say weather followed by place name",
-                    "Want To Hear a Joke, Just Say Joke!!"
+                    "Want To Hear a Joke, Just Say Joke!!",
+                    "You Can Do Simple Math Operations As well, Try This!"
                 ];
                 if ('speechSynthesis' in window) {
                     const randomGreet = aiGreetings[Math.floor(Math.random() * aiGreetings.length)];
@@ -154,7 +155,7 @@
 
                                     // Optional: Play laugh sound
                                     utterance.onend = () => {
-                                        const laughSound = new Audio('/laugh_sound.mp3');
+                                        const laughSound = new Audio('./laugh_sound.mp3');
                                         laughSound.play().catch(err => console.error("Audio play failed:", err));
                                     };
                                     speechSynthesis.speak(utterance);
@@ -168,6 +169,68 @@
 
                         getJoke();
                     }
+
+                    //several comments
+                    const severalComments = () => {
+                        if (transcript.includes('how are you') || transcript.includes('Your Condition') || transcript.includes('Happy Or Not')) {
+                            const aiAnswers = [
+                                "I am Good, What Your Condition? ",
+                                "I am Happy Enough To Make You Happy ",
+                                "Lets Be Happy Together "
+                            ]
+
+                            const randomAnswer = aiAnswers[Math.floor(Math.random() * aiAnswers.length)]
+                            document.getElementById('output').textContent = randomAnswer
+
+                            const utterance = new SpeechSynthesisUtterance(randomAnswer)
+                            utterance.lang = 'en-IN'
+                            speechSynthesis.speak(utterance)
+                        }
+                    }
+                    severalComments()
+
+
+                    const mathSolver = (transcript) => {
+                        // Saare numbers nikal lo transcript se
+                        let numbers = transcript.match(/\d+(\.\d+)?/g);
+                        if (!numbers) {
+                            document.getElementById('output').textContent = "No numbers found!";
+                            return;
+                        }
+
+                        numbers = numbers.map(parseFloat); // string → number
+
+                        let result;
+                        if (transcript.includes('add') || transcript.includes('sum')) {
+                            result = numbers.reduce((a, b) => a + b, 0);
+                        }
+                        else if (transcript.includes('subtract')) {
+                            result = numbers.reduce((a, b) => a - b);
+                        }
+                        else if (transcript.includes('multiply') || transcript.includes('multiplied by')) {
+                            result = numbers.reduce((a, b) => a * b, 1);
+                        }
+                        else if (transcript.includes('divide')) {
+                            result = numbers.reduce((a, b) => a / b);
+                        }
+                        else if (transcript.includes('remainder')) {
+                            result = numbers.reduce((a, b) => a % b);
+                        }
+                        else {
+                            document.getElementById('output').textContent = "No valid math operation found!";
+                            return;
+                        }
+
+                        // Output on screen
+                        document.getElementById('output').textContent = `Result is: ${result}`;
+
+                        // Output as speech
+                        const utterance = new SpeechSynthesisUtterance(`Result is ${result}`);
+                        utterance.lang = 'en-IN';
+                        speechSynthesis.speak(utterance);
+                    };
+                    mathSolver(transcript)
+
 
 
 
