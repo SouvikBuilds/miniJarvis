@@ -31,35 +31,6 @@
             const laughSound = new Audio('/laugh_sound.mp3');
             laughSound.preload = 'auto';
             laughSound.volume = 1
-            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-recognition.lang = 'en-US';
-recognition.interimResults = false;
-recognition.continuous = true;  // Keep listening even after results
-
-recognition.onresult = (event) => {
-  const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
-  console.log("Heard:", transcript);
-  
-  if (transcript.includes("hey jarvis")) {
-    document.getElementById('output').textContent = "Yes? How can I help you?";
-    
-    const utterance = new SpeechSynthesisUtterance("Yes? How can I help you?");
-    utterance.lang = 'en-IN';
-    speechSynthesis.speak(utterance);
-
-    // Now you can start a second listening phase to catch commands after wake word
-    // Or you can just trigger your existing command recognition logic here
-  }
-};
-
-// Restart recognition on end (to keep it always on)
-recognition.onend = () => {
-  recognition.start();
-};
-
-// Start recognition
-recognition.start();
-
 
             // Greeting function
             const greetAtStart = () => {
@@ -145,7 +116,7 @@ recognition.start();
                     }
 
                     // Weather command
-                    if (transcript.includes("weather")) {
+                    if (transcript.includes("weather") || transcript.includes('today weather')) {
                         let locationQuery = transcript.replace("weather", "").trim();
 
                         if (locationQuery) {
